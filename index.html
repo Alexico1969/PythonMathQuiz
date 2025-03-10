@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math Quiz Game</title>
+    <title>Python Math Quiz Game</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -18,32 +18,56 @@
             border-radius: 10px;
             box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
         }
-        input, button {
+        input, button, textarea {
             padding: 10px;
             margin-top: 10px;
+            width: 100%;
+        }
+        #timer {
+            font-size: 1.5em;
+            color: red;
+        }
+        #editor {
+            margin-top: 20px;
+        }
+        #output {
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #f9f9f9;
+            text-align: left;
         }
     </style>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brython@3.9.5/brython.min.js"></script>
 </head>
-<body>
+<body onload="brython()">
     <div class="container">
-        <h1>Math Quiz Game</h1>
+        <h1>Python Math Quiz Game</h1>
         <p><strong>Score:</strong> <span id="score">0</span></p>
         <p><strong id="question">Loading...</strong></p>
-        
+        <p id="timer">Time left: <span id="time">30</span> seconds</p>
         <p id="message"></p>
-        
         <input type="text" id="answer" placeholder="Enter your answer" required>
         <button onclick="checkAnswer()">Submit</button>
+        
+        <div id="editor">
+            <h2>Python Code Editor</h2>
+            <textarea id="code" rows="10" placeholder="Type your Python code here..."></textarea>
+            <button onclick="evaluateCode()">Run Code</button>
+            <div id="output"></div>
+        </div>
     </div>
     
     <script>
         let score = 0;
         let correctAnswer = 0;
-        
+        let timeLeft = 30;
+        let timer;
+
         function generateQuestion() {
             let num1 = Math.floor(Math.random() * 50) + 1;
             let num2 = Math.floor(Math.random() * 10) + 1;
-            let questionType = ["modulo", "floor_div", "sqrt", "pow"][Math.floor(Math.random() * 4)];
+            let questionType = ["modulo", "floor_div", "sqrt", "pow", "fabs"][Math.floor(Math.random() * 5)];
             
             if (questionType === "modulo") {
                 correctAnswer = num1 % num2;
@@ -52,23 +76,24 @@
                 correctAnswer = Math.floor(num1 / num2);
                 document.getElementById("question").innerText = `What is ${num1} // ${num2}?`;
             } else if (questionType === "sqrt") {
-                let perfectSquares = [4, 9, 16, 25, 36, 49, 64, 81, 100];
-                num1 = perfectSquares[Math.floor(Math.random() * perfectSquares.length)];
-                correctAnswer = Math.sqrt(num1);
-                document.getElementById("question").innerText = `What is the square root of ${num1}?`;
+                correctAnswer = Math.sqrt(num1).toFixed(2);
+                document.getElementById("question").innerText = `What is sqrt(${num1})?`;
             } else if (questionType === "pow") {
-                correctAnswer = num1 ** 2;
-                document.getElementById("question").innerText = `What is ${num1} ** 2?`;
+                correctAnswer = Math.pow(num1, num2);
+                document.getElementById("question").innerText = `What is pow(${num1}, ${num2})?`;
+            } else if (questionType === "fabs") {
+                correctAnswer = Math.abs(num1 - num2);
+                document.getElementById("question").innerText = `What is fabs(${num1} - ${num2})?`;
             }
         }
-        
+
         function checkAnswer() {
             let userAnswer = document.getElementById("answer").value;
             let message = document.getElementById("message");
             
             if (!isNaN(userAnswer) && userAnswer !== "") {
-                userAnswer = parseInt(userAnswer);
-                if (userAnswer === correctAnswer) {
+                userAnswer = parseFloat(userAnswer);
+                if (userAnswer === parseFloat(correctAnswer)) {
                     score += 10;
                     message.innerText = "✅ Correct! +10 points";
                 } else {
@@ -81,8 +106,64 @@
                 message.innerText = "⚠️ Please enter a valid number.";
             }
         }
-        
-        window.onload = generateQuestion;
+
+        function startTimer() {
+            timer = setInterval(function() {
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    document.getElementById("message").innerText = "⏰ Time's up!";
+                    document.getElementById("answer").disabled = true;
+                    document.querySelector("button").disabled = true;
+                } else {
+                    document.getElementById("time").innerText = timeLeft;
+                }
+                timeLeft -= 1;
+            }, 1000);
+        }
+
+        function evaluateCode() {
+    let code = document.getElementById("code").value;
+    let outputDiv = document.getElementById("output");
+    outputDiv.innerHTML = ""; // Clear previous output
+
+    try {
+        // Define a custom print function to capture output
+        let script = document.createElement("script");
+        script.type = "text/python";
+        script.text = `
+from browser import document, console
+
+# Redirect print to update the div
+def custom_print(*args):
+    document['output'].html += ' '.join(map(str, args)) + '<br>'
+
+# Replace built-in print
+print = custom_print
+
+${code}
+        `;
+
+        // Append the script to the body
+        document.body.appendChild(script);
+
+        // Run Brython
+        brython(1);
+
+        // Remove script tag after execution
+        document.body.removeChild(script);
+    } catch (error) {
+        outputDiv.innerText = `Error: ${error}`;
+    }
+}
+
+
+
+
+
+        window.onload = function() {
+            generateQuestion();
+            startTimer();
+        };
     </script>
 </body>
 </html>
