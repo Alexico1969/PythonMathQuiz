@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Quiz Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        .container {
+            width: 50%;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        input, button {
+            padding: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Math Quiz Game</h1>
+        <p><strong>Score:</strong> <span id="score">0</span></p>
+        <p><strong id="question">Loading...</strong></p>
+        
+        <p id="message"></p>
+        
+        <input type="text" id="answer" placeholder="Enter your answer" required>
+        <button onclick="checkAnswer()">Submit</button>
+    </div>
+    
+    <script>
+        let score = 0;
+        let correctAnswer = 0;
+        
+        function generateQuestion() {
+            let num1 = Math.floor(Math.random() * 50) + 1;
+            let num2 = Math.floor(Math.random() * 10) + 1;
+            let questionType = ["modulo", "floor_div", "sqrt", "pow"][Math.floor(Math.random() * 4)];
+            
+            if (questionType === "modulo") {
+                correctAnswer = num1 % num2;
+                document.getElementById("question").innerText = `What is ${num1} % ${num2}?`;
+            } else if (questionType === "floor_div") {
+                correctAnswer = Math.floor(num1 / num2);
+                document.getElementById("question").innerText = `What is ${num1} // ${num2}?`;
+            } else if (questionType === "sqrt") {
+                let perfectSquares = [4, 9, 16, 25, 36, 49, 64, 81, 100];
+                num1 = perfectSquares[Math.floor(Math.random() * perfectSquares.length)];
+                correctAnswer = Math.sqrt(num1);
+                document.getElementById("question").innerText = `What is the square root of ${num1}?`;
+            } else if (questionType === "pow") {
+                correctAnswer = num1 ** 2;
+                document.getElementById("question").innerText = `What is ${num1} ** 2?`;
+            }
+        }
+        
+        function checkAnswer() {
+            let userAnswer = document.getElementById("answer").value;
+            let message = document.getElementById("message");
+            
+            if (!isNaN(userAnswer) && userAnswer !== "") {
+                userAnswer = parseInt(userAnswer);
+                if (userAnswer === correctAnswer) {
+                    score += 10;
+                    message.innerText = "✅ Correct! +10 points";
+                } else {
+                    message.innerText = `❌ Incorrect! The correct answer was ${correctAnswer}`;
+                }
+                document.getElementById("score").innerText = score;
+                document.getElementById("answer").value = "";
+                generateQuestion();
+            } else {
+                message.innerText = "⚠️ Please enter a valid number.";
+            }
+        }
+        
+        window.onload = generateQuestion;
+    </script>
+</body>
+</html>
