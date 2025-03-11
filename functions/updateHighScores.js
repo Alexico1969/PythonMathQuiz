@@ -20,11 +20,13 @@ exports.handler = async (event, context) => {
         q.Create(q.Collection('highscores'), { data: { name, score } })
       )
     );
+    console.log('FaunaDB response:', response);
     return {
       statusCode: 200,
       body: JSON.stringify(response.data),
     };
   } catch (error) {
+    console.error('Error querying FaunaDB:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: error.message }),
