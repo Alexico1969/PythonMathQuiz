@@ -13,11 +13,13 @@ exports.handler = async (event, context) => {
         q.Lambda("X", q.Get(q.Var("X")))
       )
     );
+    console.log('FaunaDB response:', response);
     return {
       statusCode: 200,
       body: JSON.stringify(response.data),
     };
   } catch (error) {
+    console.error('Error querying FaunaDB:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: error.message }),
