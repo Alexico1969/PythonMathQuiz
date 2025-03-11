@@ -2,6 +2,7 @@ let score = 0;
 let correctAnswer = 0;
 let timeLeft = 300; // 5 minutes in seconds
 let timer;
+let highestScore = 0;
 
 function generateQuestion() {
     let num1 = Math.floor(Math.random() * 50) + 1;
@@ -41,6 +42,13 @@ function checkAnswer() {
         document.getElementById("score").innerText = score;
         document.getElementById("answer").value = "";
         generateQuestion();
+
+        // Update high score if current score is higher
+        if (score > highestScore) {
+            highestScore = score;
+            const userName = document.getElementById('user-name').innerText.replace('Hello, ', '');
+            updateHighScore(userName, highestScore);
+        }
     } else {
         message.innerText = "⚠️ Please enter a valid number.";
     }
@@ -110,12 +118,44 @@ ${code}
     }
 }
 
+async function fetchHighScores() {
+    try {
+        const response = await fetch('/.netlify/functions/getHighScores');
+        const data = await response.json();
+        // Display high scores
+        const highScoresList = document.getElementById('high-scores');
+        highScoresList.innerHTML = '';
+        data.forEach(user => {
+            const listItem = document.createElement('li');
+            listItem.innerText = `${user.data.name}: ${user.data.score}`;
+            highScoresList.appendChild(listItem);
+        });
+    } catch (error) {
+        console.error('Error fetching high scores:', error);
+    }
+}
+
+async function updateHighScore(name, score) {
+    try {
+        const response = await fetch('/.netlify/functions/updateHighScore', {
+            method: 'POST',
+            body: JSON.stringify({ name, score }),
+        });
+        const data = await response.json();
+        // Update high scores list
+        fetchHighScores();
+    } catch (error) {
+        console.error('Error updating high score:', error);
+    }
+}
+
 function handleCredentialResponse(response) {
     const data = jwt_decode(response.credential);
     document.getElementById('user-name').innerText = `Hello, ${data.name}`;
 }
 
 window.onload = function() {
+    fetchHighScores();
     generateQuestion();
     startTimer();
 };
