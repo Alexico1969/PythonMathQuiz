@@ -121,7 +121,14 @@ ${code}
 async function fetchHighScores() {
     try {
         const response = await fetch('/.netlify/functions/getHighScores');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data = await response.json();
+        // Ensure data is an array
+        if (!Array.isArray(data)) {
+            throw new Error('Data is not an array');
+        }
         // Display high scores
         const highScoresList = document.getElementById('high-scores');
         highScoresList.innerHTML = '';
@@ -139,8 +146,14 @@ async function updateHighScore(name, score) {
     try {
         const response = await fetch('/.netlify/functions/updateHighScore', {
             method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
             body: JSON.stringify({ name, score }),
         });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data = await response.json();
         // Update high scores list
         fetchHighScores();
